@@ -1,0 +1,8 @@
+name: Plugin
+version: '1.0-SNAPSHOT'
+main: com.spacerulerwill.plugin.Plugin
+api-version: 1.19
+commands:
+  arena:
+    description: Start the arena game mode
+    usage: /<command> borderSize
