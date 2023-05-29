@@ -60,14 +60,17 @@ public final class Plugin extends JavaPlugin implements Listener {
 
                 try {
                     borderSize = Integer.parseInt(args[0]);
+
+                    if (borderSize < 25) {
+                        p.sendMessage(Component.text("§CArgument §EborderSize §Cmust be atleast 25!"));
+                        return true;
+                    }
                 }
                 catch (ArrayIndexOutOfBoundsException e){
                     borderSize = 150;
                 }
                 catch (NumberFormatException e) {
-                    TextComponent component = Component.text("§CArgument §EborderSize §Cmust be an integer value");
-                    p.sendMessage(component);
-
+                    p.sendMessage(Component.text("§CArgument §EborderSize §Cmust be an integer value"));
                     return true;
                 }
 
