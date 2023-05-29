@@ -39,7 +39,7 @@ public class CountdownTimer implements Runnable{
             afterTimer.run();
 
             // Cancel timer
-            if (assignedTaskID != null) Bukkit.getScheduler().cancelTask(assignedTaskID);
+            if (assignedTaskID != null) cancelTask();
             return;
         }
 
@@ -61,5 +61,9 @@ public class CountdownTimer implements Runnable{
     public void scheduleTimer() {
         // Initialize our assigned task's id, for later use so we can cancel
         this.assignedTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this, 0L, 20L);
+    }
+
+    public void cancelTask() {
+        Bukkit.getScheduler().cancelTask(assignedTaskID);
     }
 }
