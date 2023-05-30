@@ -1,4 +1,4 @@
-package com.spacerulerwill.plugin;
+package com.spacerulerwill.plugin.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;

@@ -6,3 +6,6 @@ commands:
   arena:
     description: Start the arena game mode
     usage: /<command> borderSize
+libraries:
+  - com.github.shynixn.structureblocklib:structureblocklib-bukkit-api:2.10.0
+  - com.github.shynixn.structureblocklib:structureblocklib-bukkit-core:2.10.0

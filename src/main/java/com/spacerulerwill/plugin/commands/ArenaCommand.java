@@ -1,6 +1,7 @@
 package com.spacerulerwill.plugin.commands;
 
-import com.spacerulerwill.plugin.CountdownTimer;
+import com.github.shynixn.structureblocklib.api.bukkit.StructureBlockLibApi;
+import com.spacerulerwill.plugin.util.CountdownTimer;
 import com.spacerulerwill.plugin.Plugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -10,7 +11,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
@@ -61,8 +61,8 @@ public class ArenaCommand implements CommandExecutor {
         try {
             borderSize = Integer.parseInt(args[1]);
 
-            if (borderSize < 25) {
-                p.sendMessage(Component.text("§CArgument §EborderSize §Cmust be atleast 25!"));
+            if (borderSize < 150) {
+                p.sendMessage(Component.text("§CArgument §EborderSize §Cmust be atleast 150!"));
                 return true;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -73,6 +73,8 @@ public class ArenaCommand implements CommandExecutor {
         }
 
         plugin.setPlaying(true);
+
+        p.getServer().sendMessage(Component.text("§aArena starting!"));
 
         World world = p.getWorld();
         Random rand = new Random();
@@ -85,25 +87,34 @@ public class ArenaCommand implements CommandExecutor {
         // set to daytime
         world.setTime(6000);
 
-        Location newPlayerLocation = p.getLocation();
+        Location playerLocation = p.getLocation();
+        Location newPlayerLocation = playerLocation;
 
         // teleport players to random location inside world border
         int half = borderSize / 2;
         for (Player p_iter : world.getPlayers()) {
+            // if it's the command instigating player - don't move, create end portal surrounding
+            if (p_iter == p) {
+                Location endPortalLocation = new Location(world, playerLocation.getX() - 2.0, playerLocation.getY() - 1.0, playerLocation.getZ() - 2.0);
+                StructureBlockLibApi.INSTANCE
+                        .loadStructure(plugin)
+                        .at(endPortalLocation)
+                        .loadFromPath(plugin.arena_portal_path);
+            } else { // otherwise teleport to random location within arena and create cage
+                // calculate new position
+                int x = rand.nextInt(half) - half;
+                int z = rand.nextInt(half) - half;
 
-            // calculate new position
-            int x = rand.nextInt(half) - half;
-            int z = rand.nextInt(half) - half;
+                // move to new position
+                newPlayerLocation = new Location(world, newPlayerLocation.blockX() + x, newPlayerLocation.blockY(), newPlayerLocation.blockZ() + z);
 
-            // move to new position
-            newPlayerLocation = new Location(world, newPlayerLocation.blockX() + x, newPlayerLocation.blockY(), newPlayerLocation.blockZ() + z);
+                // find location of highest block on new location
+                Location highestBlock = world.getHighestBlockAt(newPlayerLocation).getLocation();
 
-            // find location of highest block on new location
-            Location highestBlock = world.getHighestBlockAt(newPlayerLocation).getLocation();
-
-            // move out of the ground and into center of block
-            newPlayerLocation.set(highestBlock.getX() + 0.5, highestBlock.getY() + 1.0, highestBlock.getZ() + 0.5);
-            p_iter.teleport(newPlayerLocation);
+                // move out of the ground and into center of block
+                newPlayerLocation.set(highestBlock.getX() + 0.5, highestBlock.getY() + 1.0, highestBlock.getZ() + 0.5);
+                p_iter.teleport(newPlayerLocation);
+            }
 
             // all the other stuff
             p_iter.getInventory().clear();
@@ -111,7 +122,10 @@ public class ArenaCommand implements CommandExecutor {
             p_iter.setFoodLevel(20);
             p_iter.setNoDamageTicks(200); // invulnerable for 10 seconds
 
+            // cant break blocks
             p_iter.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 100, 255)); // cant break blocks
+
+            // barrier cage to stop them moving during countdown
             createPlayerCage(world, newPlayerLocation, Material.BARRIER);
         }
 
@@ -133,6 +147,7 @@ public class ArenaCommand implements CommandExecutor {
 
         isCountingDown = true;
         timer.scheduleTimer();
+
         return true;
     }
 
@@ -149,6 +164,7 @@ public class ArenaCommand implements CommandExecutor {
         }
 
         plugin.setPlaying(false);
+        p.getServer().sendMessage(Component.text("§CCancelling arena!"));
 
         return true;
     }
